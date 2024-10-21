@@ -62,10 +62,21 @@
 <!--		new dependemcies-->
 		<!-- Datadog Tracing API -->
 		<dependency>
+		<groupId>com.datadoghq</groupId>
+		<artifactId>dd-java-agent</artifactId>
+		<version>0.89.0</version>
+	</dependency>
+
+		<dependency>
 			<groupId>com.datadoghq</groupId>
 			<artifactId>dd-trace-api</artifactId>
-			<version>1.12.0</version>
+			<version>1.41.1</version>
 		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.datadoghq</groupId>-->
+<!--			<artifactId>dd-log4j2</artifactId>-->
+<!--			<version>0.89.0</version>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
