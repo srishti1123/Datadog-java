@@ -12,17 +12,24 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class MYController {
     private static final Logger logger = LoggerFactory.getLogger(MYController.class);
+
     @Trace(operationName = "hello.request")
     @GetMapping("/hello")
     public String hello(@RequestParam(required = false) String name) {
         logger.info("Received request for /hello endpoint with name: {}", name);
-        logger.info("check the router if it is working or not");
+        logger.info("Check the router if it is working or not");
 
         if (name == null || !"hello".equalsIgnoreCase(name)) {
             String errorMessage = "Invalid input: expected 'hello', but received: " + name;
             logger.error("Error: {}", errorMessage);
+            try {
+                throw new IllegalArgumentException("Invalid input received: " + name);
+            } catch (Exception e) {
+                logger.error("An exception occurred due to invalid input", e); // Log the exception with the error
+            }
             return errorMessage;
         }
+
         logger.info("Processing the request...");
         return "Hello, Datadog!";
     }
