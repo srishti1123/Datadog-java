@@ -24,7 +24,6 @@ public class MYController {
             return errorMessage;
         }
         logger.info("Processing the request...");
-//            logger.info("the msg is printed");
         return "Hello, Datadog!";
     }
 }
