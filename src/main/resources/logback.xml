@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Define the FILE appender with Datadog trace and span ID -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>C:/ProgramData/Datadog/datadog-java.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!-- Add Datadog's trace and span IDs to the log pattern -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %X{dd.trace_id} %X{dd.span_id} - %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Root logger to use the FILE appender -->
+    <root level="INFO">
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>
