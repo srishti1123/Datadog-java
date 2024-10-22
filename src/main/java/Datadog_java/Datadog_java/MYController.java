@@ -13,26 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class MYController {
     private static final Logger logger = LoggerFactory.getLogger(MYController.class);
 
-    // Static block to set Datadog properties
-    static {
-        // Set Datadog service, environment, and version properties
-        System.setProperty("dd.service", "Datadog-java-0.0.1-SNAPSHOT");
-        System.setProperty("dd.env", "staging");
-        System.setProperty("dd.version", "1.0.0");
-
-        // Optionally, set service mapping if needed
-        System.setProperty("dd.service.mapping", "h2:Datadog-java-h2");
-    }
-
     @Trace(operationName = "hello.request")
     @GetMapping("/hello")
     public String hello(@RequestParam(required = false) String name) {
-        // Log the current Datadog settings
-        logger.info("Service: {}, Environment: {}, Version: {}",
-                System.getProperty("dd.service"),
-                System.getProperty("dd.env"),
-                System.getProperty("dd.version"));
-
         logger.info("Received request for /hello endpoint with name: {}", name);
         logger.info("Check the router if it is working or not");
 
