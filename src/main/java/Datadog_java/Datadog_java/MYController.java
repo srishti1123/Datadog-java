@@ -13,11 +13,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+//import javax.annotation.PostConstruct;
+
 @RestController
 @RequestMapping("/api")
 public class MYController {
 
     private static final Logger logger = LoggerFactory.getLogger(MYController.class);
+
+    // Set the Datadog service name programmatically
+//    @PostConstruct
+    public void init() {
+        System.setProperty("dd.service", "Datadog-java-0.0.1-SNAPSHOT");
+        logger.info("Service name set to: {}", System.getProperty("dd.service"));
+    }
 
     // Custom exception for invalid input
     public static class InvalidInputException extends RuntimeException {
@@ -30,6 +39,12 @@ public class MYController {
     @GetMapping("/hello")
     public String hello(@RequestParam(required = false) String name) {
         logger.info("Received request for /hello endpoint with name: {}", name);
+
+        // Simulate an internal server error
+        if ("error".equalsIgnoreCase(name)) {
+            logger.error("Simulating internal server error for testing");
+            throw new RuntimeException("Simulated Internal Server Error");
+        }
 
         // Throw an exception if invalid name is provided and create a custom span for error handling
         if (name == null || !"hello".equalsIgnoreCase(name)) {
