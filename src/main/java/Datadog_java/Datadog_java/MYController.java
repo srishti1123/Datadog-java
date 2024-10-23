@@ -50,7 +50,7 @@ public class MYController {
         }
 
         logger.info("Processing the request...");
-        return "Hello, Datadog!";
+        return "Hello, Datadog!(enabled)";
     }
 
     // Exception handler for InvalidInputException
