@@ -1,6 +1,8 @@
 package Datadog_java.Datadog_java;
 
 import datadog.trace.api.Trace;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -17,7 +19,7 @@ public class MYController {
 
     private static final Logger logger = LoggerFactory.getLogger(MYController.class);
 
-    // Exception for invalid input
+    // Custom exception for invalid input
     public static class InvalidInputException extends RuntimeException {
         public InvalidInputException(String message) {
             super(message);
@@ -28,33 +30,59 @@ public class MYController {
     @GetMapping("/hello")
     public String hello(@RequestParam(required = false) String name) {
         logger.info("Received request for /hello endpoint with name: {}", name);
-        logger.info("Check the router if it is working or not");
 
-        // Throw exception if invalid name is provided
+        // Throw an exception if invalid name is provided and create a custom span for error handling
         if (name == null || !"hello".equalsIgnoreCase(name)) {
             String errorMessage = "Invalid input: expected 'hello', but received: " + name;
             logger.error("Error: {}", errorMessage);
 
-            // Throw custom exception for error tracking
-            throw new InvalidInputException("Invalid input received: " + name);
+            // Start a new trace/span for this error
+            Span span = GlobalTracer.get().activeSpan();
+            if (span != null) {
+                span.setTag("error", true); // Mark the span as an error
+                span.setTag("error.fingerprint", "invalid-input"); // Custom error fingerprint
+                span.setTag("error.message", "Invalid input received: " + name);
+                logger.info("Custom error grouping applied with error.fingerprint");
+            }
+
+            // Throw a custom exception
+            throw new InvalidInputException(errorMessage);
         }
 
         logger.info("Processing the request...");
         return "Hello, Datadog!";
     }
 
-    // Exception handler for invalid inputs
+    // Exception handler for InvalidInputException
     @ExceptionHandler(InvalidInputException.class)
     public ResponseEntity<String> handleInvalidInputException(InvalidInputException ex) {
         logger.error("An error occurred: {}", ex.getMessage(), ex);
+
+        // Capture the active span and add the error information
+        Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("error", true);
+            span.setTag("error.fingerprint", "invalid-input-exception-handler"); // Different fingerprint for this handler
+            span.setTag("error.message", ex.getMessage());
+        }
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body("Invalid input: " + ex.getMessage());
     }
 
-    // Generic Exception handler for other exceptions
+    // Generic exception handler for all other exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleAllExceptions(Exception ex) {
         logger.error("An unexpected error occurred", ex);
+
+        // Capture the active span and add the error information
+        Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("error", true);
+            span.setTag("error.fingerprint", "general-exception-handler"); // Different fingerprint for general errors
+            span.setTag("error.message", ex.getMessage());
+        }
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Internal Server Error: Please contact support.");
     }
