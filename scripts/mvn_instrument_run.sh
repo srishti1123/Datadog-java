@@ -19,7 +19,7 @@ if [ -f target/Datadog-java-0.0.1-SNAPSHOT.jar ]; then
     echo "Using JAR path: target/Datadog-java-0.0.1-SNAPSHOT.jar"
 
     # Run the application with Datadog Java agent
-    java $JAVA_OPTS -javaagent:C:/Users/Srishti/Downloads/Datadog-java/dd-java-agent.jar \
+    java $JAVA_OPTS -javaagent:C:\Users\Srishti\Downloads\Datadog-java\Datadog-java\dd-java-agent.jar \
         -Ddd.trace.sample.rate=1 \
         -Ddd.service=${DD_SERVICE} \
         -Ddd.env=${DD_ENV} \
