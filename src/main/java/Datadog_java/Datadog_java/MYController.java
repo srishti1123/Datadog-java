@@ -26,13 +26,6 @@ public class MYController {
         }
     }
 
-    // Custom exception for simulating a 500 Internal Server Error
-    public static class InternalServerErrorException extends RuntimeException {
-        public InternalServerErrorException(String message) {
-            super(message);
-        }
-    }
-
     @Trace(operationName = "hello.request")
     @GetMapping("/hello")
     public String hello(@RequestParam(required = false) String name) {
@@ -56,24 +49,8 @@ public class MYController {
             throw new InvalidInputException(errorMessage);
         }
 
-        // Simulate an internal server error if the name is 'server-error'
-        if ("server-error".equalsIgnoreCase(name)) {
-            String errorMessage = "Simulating internal server error";
-            logger.error("Error: {}", errorMessage);
-
-            Span span = GlobalTracer.get().activeSpan();
-            if (span != null) {
-                span.setTag("error", true); // Mark the span as an error
-                span.setTag("error.fingerprint", "internal-server-error"); // Custom error fingerprint for 500 error
-                span.setTag("error.message", errorMessage);
-            }
-
-            // Throw an exception to simulate a 500 Internal Server Error
-            throw new InternalServerErrorException(errorMessage);
-        }
-
         logger.info("Processing the request...");
-        return "Hello, Datadog!(enabled)";
+        return "Hello, Datadog!";
     }
 
     // Exception handler for InvalidInputException
@@ -91,23 +68,6 @@ public class MYController {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body("Invalid input: " + ex.getMessage());
-    }
-
-    // Exception handler for InternalServerErrorException (500 error)
-    @ExceptionHandler(InternalServerErrorException.class)
-    public ResponseEntity<String> handleInternalServerErrorException(InternalServerErrorException ex) {
-        logger.error("An internal server error occurred: {}", ex.getMessage(), ex);
-
-        // Capture the active span and add the error information
-        Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("error", true);
-            span.setTag("error.fingerprint", "500-internal-server-error"); // Custom fingerprint for 500 errors
-            span.setTag("error.message", ex.getMessage());
-        }
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Internal Server Error: " + ex.getMessage());
     }
 
     // Generic exception handler for all other exceptions
