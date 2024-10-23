@@ -1,0 +1,7 @@
+-javaagent:C:\Users\Srishti\Downloads\Datadog-java\Datadog-java\dd-java-agent.jar
+-Ddd.service=Datadog-java-0.0.1-SNAPSHOT
+-Ddd.env=staging
+-Ddd.version=1.0.0
+-Ddd.profiling.enabled=true
+-Ddd.logs.injection=true
+-Ddd.trace.sample.rate=1
