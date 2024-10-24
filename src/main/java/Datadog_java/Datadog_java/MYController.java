@@ -49,17 +49,6 @@ public class MYController {
                 logger.error("Simulating internal server error for testing");
                 throw new RuntimeException("Simulated Internal Server Error");
             }
-
-            if ("timeout".equalsIgnoreCase(name)) {
-                logger.error("Simulating connection timeout");
-//                throw new SocketTimeoutException("Simulated Connection Timeout");
-            }
-
-            if ("db".equalsIgnoreCase(name)) {
-                logger.error("Simulating database failure");
-//                throw new SQLException("Simulated Database Failure");
-            }
-
             if (name == null || !"hello".equalsIgnoreCase(name)) {
                 String errorMessage = "Invalid input: expected 'hello', but received: " + name;
                 logger.error("Error: {}", errorMessage);
@@ -76,21 +65,6 @@ public class MYController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body("Invalid input: " + ex.getMessage());
     }
-
-    @ExceptionHandler(SocketTimeoutException.class)
-    public ResponseEntity<String> handleSocketTimeoutException(SocketTimeoutException ex) {
-        logger.error("Connection timeout error occurred: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
-                .body("Request timed out: " + ex.getMessage());
-    }
-
-    @ExceptionHandler(SQLException.class)
-    public ResponseEntity<String> handleSQLException(SQLException ex) {
-        logger.error("Database error occurred: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Database error: " + ex.getMessage());
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleAllExceptions(Exception ex) {
         logger.error("An unexpected error occurred", ex);
