@@ -1,79 +1,117 @@
 package Datadog_java.Datadog_java;
 
-import org.springframework.web.bind.annotation.*;
+import datadog.trace.api.Trace;
+import datadog.trace.api.CorrelationIdentifier;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.SocketTimeoutException;
 import java.sql.SQLException;
 
-// Spring Boot annotations for creating REST controller
 @RestController
 @RequestMapping("/api")
 public class MYController {
 
-    // Example init method - not being used, remove if unnecessary
-    @GetMapping("/init")
-    public String init() {
-        return "Initialization successful";
+    private static final Logger logger = LoggerFactory.getLogger(MYController.class);
+
+    public void init() {
+        System.setProperty("dd.service", "datadog-java-0.0.1-snapshot");
+        logger.info("Service name set to: {}", System.getProperty("dd.service"));
     }
 
-    // Example hello method - responding to a GET request
-    @GetMapping("/hello")
-    public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
-        // Example logic with null check
-        if (name == null || name.equalsIgnoreCase("")) {
-            return "Hello, Anonymous!";
-        }
-        return "Hello, " + name + "!";
-    }
-
-    // Example method that may throw SQLException and SocketTimeoutException
-    @GetMapping("/data")
-    public ResponseEntity<String> fetchData() {
-        try {
-            // Simulate data fetching that may cause exceptions
-            simulateDatabaseOperation();
-            simulateNetworkCall();
-
-            return ResponseEntity.ok("Data fetched successfully");
-
-        } catch (SQLException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Database error: " + e.getMessage());
-
-        } catch (SocketTimeoutException e) {
-            return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).body("Network timeout: " + e.getMessage());
-        }
-    }
-
-    // Method to simulate a network call that can throw SocketTimeoutException
-    private void simulateNetworkCall() throws SocketTimeoutException {
-        // Simulate a condition where a timeout happens
-        throw new SocketTimeoutException("Timeout while calling the external service");
-    }
-
-    // Method to simulate a database operation that can throw SQLException
-    private void simulateDatabaseOperation() throws SQLException {
-        // Simulate a database error
-        throw new SQLException("Failed to fetch data from the database");
-    }
-
-    // Exception handler for invalid input
-    @ExceptionHandler(InvalidInputException.class)
-    public ResponseEntity<String> handleInvalidInputException(InvalidInputException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    // Exception handler for general exceptions
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleAllExceptions(Exception e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    // Custom exception class for invalid inputs
     public static class InvalidInputException extends RuntimeException {
         public InvalidInputException(String message) {
             super(message);
         }
+    }
+
+    @Trace(operationName = "hello.request")
+    @GetMapping("/hello")
+    public String hello(@RequestParam(required = false) String name) {
+        try {
+            MDC.put("dd.trace_id", CorrelationIdentifier.getTraceId());
+            MDC.put("dd.span_id", CorrelationIdentifier.getSpanId());
+
+            logger.info("Received request for /hello endpoint with name: {}", name);
+
+            // Simulate different errors
+            if ("error".equalsIgnoreCase(name)) {
+                logger.error("Simulating internal server error for testing");
+                throw new RuntimeException("Simulated Internal Server Error");
+            }
+
+            if ("timeout".equalsIgnoreCase(name)) {
+                logger.error("Simulating connection timeout");
+                throw new SocketTimeoutException("Simulated Connection Timeout");
+            }
+
+            if ("db".equalsIgnoreCase(name)) {
+                logger.error("Simulating database failure");
+                throw new SQLException("Simulated Database Failure");
+            }
+
+            if (name == null || !"hello".equalsIgnoreCase(name)) {
+                String errorMessage = "Invalid input: expected 'hello', but received: " + name;
+                logger.error("Error: {}", errorMessage);
+                throw new InvalidInputException(errorMessage);
+            }
+
+            logger.info("Processing the request...");
+            return "Hello, Datadog! 8080";
+        } catch (InvalidInputException ex) {
+            logger.error("Caught InvalidInputException: {}", ex.getMessage());
+            //  throw ex; // Rethrow to be handled by the exception handler
+        } catch (SocketTimeoutException ex) {
+            logger.error("Caught SocketTimeoutException: {}", ex.getMessage());
+            //  throw ex; // Rethrow to be handled by the exception handler
+        } catch (SQLException ex) {
+            logger.error("Caught SQLException: {}", ex.getMessage());
+            // throw ex; // Rethrow to be handled by the exception handler
+        } catch (Exception ex) {
+            logger.error("Caught unexpected exception: {}", ex.getMessage());
+            // throw new RuntimeException("An unexpected error occurred", ex); // Rethrow as a runtime exception
+        } finally {
+            MDC.remove("dd.trace_id");
+            MDC.remove("dd.span_id");
+        }
+
+        return "datadog";
+    }
+    @ExceptionHandler(InvalidInputException.class)
+    public ResponseEntity<String> handleInvalidInputException(InvalidInputException ex) {
+        logger.error("Invalid input error occurred: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Invalid input: " + ex.getMessage());
+    }
+
+    @ExceptionHandler(SocketTimeoutException.class)
+    public ResponseEntity<String> handleSocketTimeoutException(SocketTimeoutException ex) {
+        logger.error("Connection timeout error occurred: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                .body("Request timed out: " + ex.getMessage());
+    }
+
+    @ExceptionHandler(SQLException.class)
+    public ResponseEntity<String> handleSQLException(SQLException ex) {
+        logger.error("Database error occurred: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Database error: " + ex.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleAllExceptions(Exception ex) {
+        logger.error("An unexpected error occurred", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Internal Server Error: Please contact support.");
     }
 }
