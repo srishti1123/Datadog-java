@@ -22,7 +22,7 @@ public class MYController {
     private static final Logger logger = LoggerFactory.getLogger(MYController.class);
 
     public void init() {
-        System.setProperty("dd.service", "Datadog-java-0.0.1-snapshot");
+        System.setProperty("dd.service", "datadog-java-0.0.1-snapshot");
         logger.info("Service name set to: {}", System.getProperty("dd.service"));
     }
 
