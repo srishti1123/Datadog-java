@@ -22,7 +22,7 @@ public class MYController {
     private static final Logger logger = LoggerFactory.getLogger(MYController.class);
 
     public void init() {
-        System.setProperty("dd.service", "Datadog-java-0.0.1-SNAPSHOT");
+        System.setProperty("dd.service", "Datadog-java-0.0.1-snapshot");
         logger.info("Service name set to: {}", System.getProperty("dd.service"));
     }
 
@@ -63,7 +63,7 @@ public class MYController {
             }
 
             logger.info("Processing the request...");
-            return "Hello, Datadog!";
+            return "Hello, Datadog! 8080";
         } finally {
             // Clean up MDC context
             MDC.remove("dd.trace_id");
