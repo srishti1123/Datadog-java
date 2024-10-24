@@ -24,6 +24,7 @@ if [ -f target/Datadog-java-0.0.1-SNAPSHOT.jar ]; then
         -Ddd.service=${DD_SERVICE} \
         -Ddd.env=${DD_ENV} \
         -Ddd.version=${DD_VERSION} \
+        -Ddd.logs.injection=true \
         -jar target/Datadog-java-0.0.1-SNAPSHOT.jar
 else
     echo "JAR file not found: target/Datadog-java-0.0.1-SNAPSHOT.jar"
