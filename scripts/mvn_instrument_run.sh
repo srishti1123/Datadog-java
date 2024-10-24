@@ -2,7 +2,7 @@
 set -e  # Exit immediately if a command exits with a non-zero status
 
 # Set Datadog-related environment variables
-export DD_SERVICE="Datadog-java-0.0.1-snapshot"
+export DD_SERVICE="datadog-java-0.0.1-snapshot"
 export DD_VERSION="1.0.0"
 export DD_ENV="staging"
 
