@@ -38,7 +38,7 @@ public class MYController {
     @Trace(operationName = "hello.request")
     @GetMapping("/hello")
     public String hello(@RequestParam(required = false) String name) {
-        try {
+
             MDC.put("dd.trace_id", CorrelationIdentifier.getTraceId());
             MDC.put("dd.span_id", CorrelationIdentifier.getSpanId());
 
@@ -52,12 +52,12 @@ public class MYController {
 
             if ("timeout".equalsIgnoreCase(name)) {
                 logger.error("Simulating connection timeout");
-                throw new SocketTimeoutException("Simulated Connection Timeout");
+//                throw new SocketTimeoutException("Simulated Connection Timeout");
             }
 
             if ("db".equalsIgnoreCase(name)) {
                 logger.error("Simulating database failure");
-                throw new SQLException("Simulated Database Failure");
+//                throw new SQLException("Simulated Database Failure");
             }
 
             if (name == null || !"hello".equalsIgnoreCase(name)) {
@@ -66,28 +66,8 @@ public class MYController {
                 throw new InvalidInputException(errorMessage);
             }
 
-            logger.info("Processing the request...");
+//            logger.info("Processing the request...");
             return "Hello, Datadog! 8080";
-        } catch (InvalidInputException ex) {
-            logger.error("Caught InvalidInputException: {}", ex.getMessage());
-           // throw ex; // Rethrow to be handled by the exception handler
-            return ex.getMessage();
-        } catch (SocketTimeoutException ex) {
-            logger.error("Caught SocketTimeoutException: {}", ex.getMessage());
-            //throw ex; // Rethrow to be handled by the exception handler
-            return ex.getMessage();
-        } catch (SQLException ex) {
-            logger.error("Caught SQLException: {}", ex.getMessage());
-            //throw ex; // Rethrow to be handled by the exception handler
-            return ex.getMessage();
-        } catch (Exception ex) {
-            logger.error("Caught unexpected exception: {}", ex.getMessage());
-            //throw new RuntimeException("An unexpected error occurred", ex); // Rethrow as a runtime exception
-            return ex.getMessage();
-        } finally {
-            MDC.remove("dd.trace_id");
-            MDC.remove("dd.span_id");
-        }
     }
 
     @ExceptionHandler(InvalidInputException.class)
