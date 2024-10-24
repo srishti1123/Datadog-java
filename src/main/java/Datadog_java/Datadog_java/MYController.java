@@ -70,23 +70,26 @@ public class MYController {
             return "Hello, Datadog! 8080";
         } catch (InvalidInputException ex) {
             logger.error("Caught InvalidInputException: {}", ex.getMessage());
-            //  throw ex; // Rethrow to be handled by the exception handler
+           // throw ex; // Rethrow to be handled by the exception handler
+            return ex.getMessage();
         } catch (SocketTimeoutException ex) {
             logger.error("Caught SocketTimeoutException: {}", ex.getMessage());
-            //  throw ex; // Rethrow to be handled by the exception handler
+            //throw ex; // Rethrow to be handled by the exception handler
+            return ex.getMessage();
         } catch (SQLException ex) {
             logger.error("Caught SQLException: {}", ex.getMessage());
-            // throw ex; // Rethrow to be handled by the exception handler
+            //throw ex; // Rethrow to be handled by the exception handler
+            return ex.getMessage();
         } catch (Exception ex) {
             logger.error("Caught unexpected exception: {}", ex.getMessage());
-            // throw new RuntimeException("An unexpected error occurred", ex); // Rethrow as a runtime exception
+            //throw new RuntimeException("An unexpected error occurred", ex); // Rethrow as a runtime exception
+            return ex.getMessage();
         } finally {
             MDC.remove("dd.trace_id");
             MDC.remove("dd.span_id");
         }
-
-        return "datadog";
     }
+
     @ExceptionHandler(InvalidInputException.class)
     public ResponseEntity<String> handleInvalidInputException(InvalidInputException ex) {
         logger.error("Invalid input error occurred: {}", ex.getMessage(), ex);
