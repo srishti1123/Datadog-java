@@ -54,8 +54,6 @@ public class MYController {
                 logger.error("Error: {}", errorMessage);
                 throw new InvalidInputException(errorMessage);
             }
-
-//            logger.info("Processing the request...");
             return "Hello, Datadog! 8080";
     }
 
